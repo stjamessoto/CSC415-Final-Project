@@ -286,6 +286,11 @@ class PandasGenerator:
     def _exec_sort(self, df: pd.DataFrame, node: dict) -> pd.DataFrame:
         col       = node["column"].lower()
         direction = node.get("direction", "desc")
+        # After compute, columns are renamed (e.g. revenue → sum_revenue); fall back to partial match
+        if col not in df.columns:
+            matches = [c for c in df.columns if col in c.lower()]
+            if matches:
+                col = matches[0]
         return df.sort_values(col, ascending=(direction == "asc"))
 
     # ------------------------------------------------------------------

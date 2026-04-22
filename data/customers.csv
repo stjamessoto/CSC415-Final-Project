@@ -1,0 +1,36 @@
+customer_id,name,email,segment,region,join_date,total_orders,total_spent,avg_order_value,last_order_date,loyalty_tier
+C001,Alice Johnson,alice.j@email.com,Consumer,North,2022-03-15,12,4820.00,401.67,2024-10-12,Gold
+C011,Bob Martinez,bob.m@email.com,Corporate,East,2021-06-20,28,18650.00,666.07,2024-12-12,Platinum
+C012,Carol White,carol.w@email.com,Consumer,West,2023-01-08,7,2140.00,305.71,2024-01-03,Silver
+C013,David Lee,david.l@email.com,Corporate,North,2020-11-30,35,24500.00,700.00,2024-12-15,Platinum
+C015,Emma Davis,emma.d@email.com,Consumer,West,2022-08-14,9,3210.00,356.67,2024-10-18,Silver
+C017,Frank Wilson,frank.w@email.com,Corporate,North,2021-02-25,22,15400.00,700.00,2024-10-08,Platinum
+C019,Grace Taylor,grace.t@email.com,Consumer,West,2023-04-11,6,1980.00,330.00,2024-09-22,Bronze
+C021,Henry Brown,henry.b@email.com,Small Business,South,2022-07-19,15,8750.00,583.33,2024-12-28,Gold
+C023,Isabella Clark,isabella.c@email.com,Consumer,East,2021-09-05,18,6320.00,351.11,2024-11-25,Gold
+C033,James Rodriguez,james.r@email.com,Small Business,North,2022-05-22,11,4180.00,380.00,2024-12-15,Silver
+C034,Karen Lewis,karen.l@email.com,Consumer,East,2023-02-17,5,1650.00,330.00,2024-01-05,Bronze
+C035,Liam Walker,liam.w@email.com,Consumer,South,2022-11-08,8,2890.00,361.25,2024-12-18,Silver
+C037,Mia Hall,mia.h@email.com,Corporate,South,2021-04-14,19,12800.00,673.68,2024-10-25,Platinum
+C039,Noah Young,noah.y@email.com,Consumer,South,2023-06-30,4,1240.00,310.00,2024-09-08,Bronze
+C041,Olivia King,olivia.k@email.com,Small Business,South,2022-01-25,13,5460.00,420.00,2024-09-25,Gold
+C043,Peter Scott,peter.s@email.com,Consumer,South,2021-12-03,16,5120.00,320.00,2024-12-29,Gold
+C045,Quinn Adams,quinn.a@email.com,Corporate,East,2020-08-18,30,19800.00,660.00,2024-12-02,Platinum
+C055,Rachel Green,rachel.g@email.com,Consumer,East,2022-09-12,10,3580.00,358.00,2024-12-18,Silver
+C056,Samuel Baker,samuel.b@email.com,Small Business,North,2023-03-07,6,2100.00,350.00,2024-01-08,Bronze
+C057,Tina Nelson,tina.n@email.com,Consumer,North,2022-06-28,9,2970.00,330.00,2024-11-08,Silver
+C059,Uma Carter,uma.c@email.com,Corporate,North,2021-01-15,24,16200.00,675.00,2024-12-28,Platinum
+C061,Victor Mitchell,victor.m@email.com,Small Business,West,2022-04-09,14,5880.00,420.00,2024-10-15,Gold
+C063,Wendy Perez,wendy.p@email.com,Consumer,West,2023-07-21,5,1750.00,350.00,2024-10-02,Bronze
+C065,Xavier Roberts,xavier.r@email.com,Corporate,West,2021-03-30,21,14280.00,680.00,2024-11-15,Platinum
+C067,Yara Turner,yara.t@email.com,Consumer,South,2022-12-14,8,2640.00,330.00,2024-12-05,Silver
+C077,Zach Phillips,zach.p@email.com,Small Business,North,2022-02-18,12,4560.00,380.00,2024-11-22,Gold
+C078,Amy Campbell,amy.c@email.com,Consumer,South,2023-05-04,4,1320.00,330.00,2024-01-10,Bronze
+C079,Brian Evans,brian.e@email.com,Corporate,East,2020-10-22,26,17420.00,670.00,2024-11-18,Platinum
+C081,Chloe Edwards,chloe.e@email.com,Consumer,East,2022-10-31,9,3060.00,340.00,2024-10-05,Silver
+C083,Daniel Collins,daniel.c@email.com,Small Business,East,2021-07-16,17,7140.00,420.00,2024-10-18,Gold
+C085,Ella Stewart,ella.s@email.com,Consumer,East,2023-08-25,5,1700.00,340.00,2024-10-05,Bronze
+C087,Felix Sanchez,felix.s@email.com,Corporate,South,2021-05-11,20,13400.00,670.00,2024-12-31,Platinum
+C089,Gina Morris,gina.m@email.com,Consumer,West,2022-08-03,11,3740.00,340.00,2024-09-15,Silver
+C091,Harry Rogers,harry.r@email.com,Small Business,West,2022-03-27,10,4100.00,410.00,2024-01-12,Gold
+C099,Iris Reed,iris.r@email.com,Corporate,East,2020-12-09,29,19430.00,670.00,2024-12-25,Platinum
