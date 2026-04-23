@@ -90,9 +90,9 @@ examples:
     parse_parser.add_argument("input", help="Command string to parse")
     parse_parser.add_argument(
         "--format",
-        choices=["json", "tree"],
+        choices=["json", "tree", "parse-tree"],
         default="tree",
-        help="AST output format (default: tree)",
+        help="Output format: tree (AST), parse-tree (grammar rules), or json (default: tree)",
     )
 
     # --- tokens ---
@@ -438,6 +438,8 @@ def handle_parse(args):
 
     if args.format == "json":
         print(json.dumps(ast_dict, indent=2))
+    elif args.format == "parse-tree":
+        _print_parse_tree(ast_dict)
     else:
         _print_ast_tree(ast_dict)
 
@@ -572,6 +574,122 @@ def _print_ast_tree(ast: dict, indent: int = 0):
 
     for child in ast.get("body", []):
         _print_ast_tree(child, indent + 1)
+
+
+# ------------------------------------------------------------------
+# Concrete parse tree printer
+# ------------------------------------------------------------------
+
+def _ast_node_to_parse_tree(node: dict) -> dict:
+    """Convert a single AST node dict into a parse-tree dict (with grammar rule labels)."""
+    t = node.get("type", "")
+
+    if t == "Program":
+        children = [_ast_node_to_parse_tree(n) for n in node.get("body", [])]
+        if len(children) > 1:
+            return {"label": "program", "children": [
+                {"label": "compound_stmt", "children": children}
+            ]}
+        return {"label": "program", "children": children}
+
+    if t == "LoadStatement":
+        kids = [
+            {"label": "load_kw",  "value": "load"},
+            {"label": "FILENAME", "value": node["filename"]},
+        ]
+        if node.get("alias"):
+            kids += [
+                {"label": "\"as\""},
+                {"label": "IDENTIFIER", "value": node["alias"]},
+            ]
+        return {"label": "load_stmt", "children": kids}
+
+    if t == "FilterStatement":
+        kids = [{"label": "filter_kw", "value": "filter"}]
+        for i, cond in enumerate(node.get("conditions", [])):
+            if i > 0:
+                kids.append({"label": "bool_op", "value": node.get("bool_op", "and")})
+            kids.append({"label": "condition", "children": [
+                {"label": "column_ref", "value": cond["column"]},
+                {"label": "comparator",  "value": cond["operator"]},
+                {"label": "value",       "value": str(cond["value"])},
+            ]})
+        return {"label": "filter_stmt", "children": kids}
+
+    if t == "ComputeStatement":
+        metric = {"label": "metric_expr", "children": [
+            {"label": "agg_func",   "value": node["aggregation"]},
+            {"label": "column_ref", "value": node["column"]},
+        ]}
+        kids = [{"label": "compute_kw", "value": "compute"}, metric]
+        if node.get("group_by"):
+            grp = [{"label": "group_kw", "value": "by"}]
+            for col in node["group_by"]:
+                grp.append({"label": "column_ref", "value": col})
+            kids.append({"label": "group_clause", "children": grp})
+        return {"label": "compute_stmt", "children": kids}
+
+    if t == "ChartStatement":
+        kids = [
+            {"label": "chart_kw",   "value": "generate"},
+            {"label": "chart_type", "value": f"{node['chart_type']} chart"},
+        ]
+        if node.get("x") or node.get("y"):
+            kids.append({"label": "chart_data_clause", "children": [
+                {"label": "column_ref", "value": node.get("x", "")},
+                {"label": "column_ref", "value": node.get("y", "")},
+            ]})
+        if node.get("title"):
+            kids.append({"label": "title_clause", "value": f'"{node["title"]}"'})
+        return {"label": "chart_stmt", "children": kids}
+
+    if t == "PivotStatement":
+        kids = [
+            {"label": "pivot_kw", "value": "create"},
+            {"label": "\"table\""},
+        ]
+        if node.get("index"):
+            kids.append({"label": "pivot_role", "value": f'{node["index"]} as rows'})
+        if node.get("columns"):
+            kids.append({"label": "pivot_role", "value": f'{node["columns"]} as columns'})
+        if node.get("values"):
+            kids.append({"label": "pivot_role", "value": f'{node["values"]} as values'})
+        return {"label": "pivot_stmt", "children": kids}
+
+    if t == "SortStatement":
+        return {"label": "sort_stmt", "children": [
+            {"label": "sort_kw",    "value": "sort"},
+            {"label": "\"by\""},
+            {"label": "column_ref", "value": node["column"]},
+            {"label": "sort_dir",   "value": node["direction"]},
+        ]}
+
+    return {"label": t}
+
+
+def _render_parse_tree_node(node: dict, prefix: str, is_last: bool):
+    connector = "+-- " if is_last else "|-- "
+    child_pfx = prefix + ("    " if is_last else "|   ")
+    label     = node.get("label", "?")
+    value     = node.get("value")
+
+    if value is not None:
+        print(f"{prefix}{connector}{label:<18} {value!r}")
+    else:
+        print(f"{prefix}{connector}{label}")
+
+    children = node.get("children", [])
+    for i, child in enumerate(children):
+        _render_parse_tree_node(child, child_pfx, i == len(children) - 1)
+
+
+def _print_parse_tree(ast_dict: dict):
+    """Print the concrete parse tree showing grammar rule names."""
+    tree     = _ast_node_to_parse_tree(ast_dict)
+    print(tree.get("label", "program"))
+    children = tree.get("children", [])
+    for i, child in enumerate(children):
+        _render_parse_tree_node(child, "", i == len(children) - 1)
 
 
 # ------------------------------------------------------------------
