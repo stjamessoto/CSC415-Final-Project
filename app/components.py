@@ -21,7 +21,7 @@ def render_command_input(default=""):
         placeholder='e.g. "Load sales.csv and compute total revenue by region"',
         label_visibility="collapsed",
     )
-    col1, col2, col3 = st.columns([1, 1, 4])
+    col1, col2, _ = st.columns([1, 1, 4])
     with col1:
         run = st.button("Run", type="primary", use_container_width=True)
     with col2:
@@ -33,13 +33,13 @@ def render_examples_sidebar():
     with st.sidebar:
         st.header("Example commands")
         examples = {
-            "Revenue by region": "Load sales.csv and compute total revenue by region",
-            "Monthly bar chart": "Load sales.csv and generate a bar chart of monthly revenue",
-            "Filter + compute": "Load orders.csv, filter by region = West, and compute total profit",
-            "Pivot table": "Load sales.csv and create a pivot table by product and profit margin",
-            "Q1 vs Q2 chart": "Load sales.csv and generate a bar chart comparing Q1 and Q2 revenue",
-            "Top products": "Load products.csv and compute total units sold by product, sort descending",
-            "Customer revenue": "Load customers.csv and compute average revenue by customer segment",
+            "Revenue by region": "Load data/sales.csv and compute total revenue by region",
+            "Bar chart": "Load data/sales.csv and compute total revenue by region and generate a bar chart",
+            "Filter + compute": "Load data/orders.csv, filter by region = West, and compute total subtotal by channel",
+            "Pivot table": "Load data/sales.csv and create a pivot table by product and region",
+            "Line chart": "Load data/sales.csv and compute total revenue by region and generate a line chart",
+            "Top products": "Load data/sales.csv and compute total revenue by product and sort by revenue descending",
+            "Customer spend": "Load data/customers.csv and compute average total_spent by segment",
         }
         for label, cmd in examples.items():
             if st.button(label, use_container_width=True):

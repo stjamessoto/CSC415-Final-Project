@@ -122,7 +122,12 @@ class Executor:
         try:
             df = reader(filename)
         except FileNotFoundError:
-            raise FileLoadError(f"File not found: '{filename}'")
+            data_path = f"data/{filename}"
+            try:
+                df = reader(data_path)
+                filename = data_path
+            except FileNotFoundError:
+                raise FileLoadError(f"File not found: '{filename}'")
         except Exception as e:
             raise FileLoadError(f"Could not load '{filename}': {e}")
 

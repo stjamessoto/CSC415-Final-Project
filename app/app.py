@@ -4,15 +4,15 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.components import (
+from components import (
     render_header,
     render_command_input,
     render_examples_sidebar,
     render_output_tabs,
     render_metrics,
 )
-from app.auth import login_wall, logout
-from app.preview import render_live_preview
+from auth import login_wall, logout
+from preview import render_live_preview
 
 st.set_page_config(
     page_title="RetailLang IDE",
