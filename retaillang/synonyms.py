@@ -10,7 +10,7 @@ KEYWORD_SYNONYMS: dict[str, list[str]] = {
     "load":        ["import", "read", "open"],
     "compute":     ["calculate", "find", "get"],
     "filter":      ["where", "only", "select"],
-    "generate":    ["create", "make", "plot", "draw", "build", "show"],
+    "generate":    [],
     "sort":        ["order", "rank"],
     "ascending":   ["asc", "lowest first"],
     "descending":  ["desc", "highest first"],

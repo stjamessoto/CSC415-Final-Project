@@ -101,9 +101,11 @@ class Parser:
         elif val in ("sort", "order", "rank"):
             return self._parse_sort()
         else:
-            # skip unknown tokens rather than hard-crash
-            self._advance()
-            return None
+            raise ParseError(
+                f"Unrecognised statement '{tok.value}' — "
+                f"expected load, filter, compute, generate, sort, or similar",
+                position=tok.position,
+            )
 
     # ------------------------------------------------------------------
     # Load
@@ -189,14 +191,7 @@ class Parser:
             )
         raw_val = self._advance().value
 
-        # coerce numeric strings
-        value: str | float = raw_val
-        try:
-            value = float(raw_val) if "." in raw_val else int(raw_val)
-        except ValueError:
-            pass
-
-        return Condition(column=column, operator=operator, value=value)
+        return Condition(column=column, operator=operator, value=raw_val)
 
     # ------------------------------------------------------------------
     # Compute

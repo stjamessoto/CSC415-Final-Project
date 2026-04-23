@@ -97,15 +97,21 @@ class Lexer:
 
         i = 0
         while i < len(words):
-            word, pos = words[i]
+            word, pos, is_quoted = words[i]
 
             # Skip empty
             if not word:
                 i += 1
                 continue
 
+            # Quoted strings are always STRING tokens — skip all further classification
+            if is_quoted:
+                self._tokens.append(Token(TokenType.STRING, word, pos))
+                i += 1
+                continue
+
             # Try multi-word comparator (2 words)
-            if i + 1 < len(words):
+            if i + 1 < len(words) and not words[i+1][2]:
                 two = f"{word} {words[i+1][0]}".lower()
                 if two in MULTI_WORD_COMPARATORS:
                     self._tokens.append(Token(
@@ -117,7 +123,7 @@ class Lexer:
                     continue
 
             # Try multi-word keyword (2 words)
-            if i + 1 < len(words):
+            if i + 1 < len(words) and not words[i+1][2]:
                 two = f"{word} {words[i+1][0]}".lower()
                 if two in MULTI_WORD_KEYWORDS:
                     canonical = resolve_keyword(two)
@@ -147,10 +153,10 @@ class Lexer:
     # Source splitter
     # ------------------------------------------------------------------
 
-    def _split_source(self) -> list[tuple[str, int]]:
+    def _split_source(self) -> list[tuple[str, int, bool]]:
         """
-        Split source into (word, position) pairs, preserving
-        quoted strings, filenames, comparators, and punctuation.
+        Split source into (word, position, is_quoted) tuples.
+        is_quoted=True means the word came from a quoted string literal.
         """
         words = []
         i     = 0
@@ -164,25 +170,25 @@ class Lexer:
                 i += 1
                 continue
 
-            # Quoted string
+            # Quoted string — preserve exact content including spaces
             if c in ('"', "'"):
                 j     = i + 1
                 quote = c
                 while j < len(src) and src[j] != quote:
                     j += 1
-                words.append((src[i+1:j], i))
+                words.append((src[i+1:j], i, True))
                 i = j + 1
                 continue
 
             # Two-char comparators
             if c in (">", "<", "!", "=") and i + 1 < len(src) and src[i+1] == "=":
-                words.append((src[i:i+2], i))
+                words.append((src[i:i+2], i, False))
                 i += 2
                 continue
 
             # Single-char comparator or punctuation
             if c in ("=", ">", "<", ",", "(", ")"):
-                words.append((c, i))
+                words.append((c, i, False))
                 i += 1
                 continue
 
@@ -193,7 +199,7 @@ class Lexer:
             ):
                 j += 1
             token_str = src[i:j]
-            words.append((token_str, i))
+            words.append((token_str, i, False))
             i = j
 
         return words
@@ -230,11 +236,11 @@ class Lexer:
             canonical = resolve_keyword(lower)
             return Token(TokenType.KEYWORD, canonical, pos)
 
-        # Identifier — column name or value
+        # Identifier — column name or value (preserve original case)
         if self._is_identifier(word):
-            return Token(TokenType.IDENTIFIER, lower, pos)
+            return Token(TokenType.IDENTIFIER, word, pos)
 
-        # String literal used as a value (e.g. West, Electronics)
+        # String literal used as a value — e.g. West, Electronics (preserve case)
         if word.replace("-", "").replace("_", "").isalnum():
             return Token(TokenType.STRING, word, pos)
 
