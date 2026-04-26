@@ -17,7 +17,7 @@ def render_live_preview(result: dict):
         if output_type == "chart":
             fig = result.get("figure")
             if fig:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key="preview_main_chart")
 
         elif output_type in ("dataframe", "pivot"):
             df = result.get("dataframe")
@@ -36,4 +36,4 @@ def render_live_preview(result: dict):
                             y=numeric_cols[0],
                             title="Result preview",
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, use_container_width=True, key="preview_quick_chart")

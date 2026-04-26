@@ -78,7 +78,7 @@ def _render_output(result: dict):
     if output_type == "chart":
         fig = result.get("figure")
         if fig:
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="output_main_chart")
 
     elif output_type == "dataframe":
         df = result.get("dataframe")
