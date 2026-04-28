@@ -67,8 +67,10 @@ def main():
 
     render_header()
 
+    auto_run = False
     if "selected_example" in st.session_state:
         default_command = st.session_state.pop("selected_example")
+        auto_run = True
     else:
         default_command = st.session_state.get("last_command", "")
 
@@ -76,9 +78,10 @@ def main():
 
     if clear_clicked:
         st.session_state["last_command"] = ""
+        st.session_state.pop("last_result", None)
         st.rerun()
 
-    if run_clicked and command.strip():
+    if (run_clicked or auto_run) and command.strip():
         st.session_state["last_command"] = command
 
         with st.spinner("Parsing and executing..."):
@@ -101,7 +104,7 @@ def main():
             st.subheader("Live preview")
             render_live_preview(result)
 
-    elif not run_clicked:
+    elif not (run_clicked or auto_run):
         st.info("Enter a RetailLang command above and click Run to see results.")
 
 
