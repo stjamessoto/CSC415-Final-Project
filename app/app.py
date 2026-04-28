@@ -40,6 +40,10 @@ def run_command(command: str) -> dict:
         result   = executor.execute(ast)
         result["parse_tree"] = lexer.format_token_stream()
         result["ast"]        = ast.to_dict() if hasattr(ast, "to_dict") else str(ast)
+        result["tokens"]     = [
+            {"type": t.type.name, "value": t.value, "position": t.position}
+            for t in tokens
+        ]
         return result
 
     except SyntaxError as e:

@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 def render_header():
     st.markdown("""
@@ -51,7 +52,7 @@ def render_examples_sidebar():
 
 
 def render_output_tabs(result: dict):
-    tabs = st.tabs(["Output", "Generated code", "AST", "Parse tree"])
+    tabs = st.tabs(["Output", "Generated code", "AST", "Parse tree", "Tokens"])
 
     with tabs[0]:
         _render_output(result)
@@ -64,6 +65,9 @@ def render_output_tabs(result: dict):
 
     with tabs[3]:
         _render_parse_tree(result)
+
+    with tabs[4]:
+        _render_token_breakdown(result)
 
 
 def _render_output(result: dict):
@@ -131,6 +135,67 @@ def _render_parse_tree(result: dict):
         st.text(tree)
     else:
         st.info("No parse tree available.")
+
+
+_TOKEN_COLORS = {
+    "KEYWORD":    "#4c9be8",
+    "IDENTIFIER": "#3dba71",
+    "FILENAME":   "#f5a623",
+    "STRING":     "#9b59b6",
+    "NUMBER":     "#1abc9c",
+    "COMPARATOR": "#e74c3c",
+    "PUNCT":      "#95a5a6",
+}
+
+
+def _render_token_breakdown(result: dict):
+    tokens = result.get("tokens")
+    if not tokens:
+        st.info("No token data available. Run a command first.")
+        return
+
+    visible = [t for t in tokens if t["type"] != "EOF"]
+
+    # Colored chips
+    chips = "<div style='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;'>"
+    for tok in visible:
+        color = _TOKEN_COLORS.get(tok["type"], "#aaa")
+        chips += (
+            f"<span style='background:{color}22;border:1px solid {color};"
+            f"border-radius:4px;padding:3px 8px;font-size:0.85rem;"
+            f"color:{color};font-family:monospace;'>"
+            f"<b>{tok['value']}</b>"
+            f"<span style='opacity:0.7;font-size:0.72rem;margin-left:5px;'>"
+            f"{tok['type']}</span></span>"
+        )
+    chips += "</div>"
+    st.markdown("**Token stream**")
+    st.markdown(chips, unsafe_allow_html=True)
+
+    # Legend
+    legend = "<div style='display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1rem;'>"
+    for ttype, color in _TOKEN_COLORS.items():
+        legend += (
+            f"<span style='display:flex;align-items:center;gap:4px;font-size:0.8rem;'>"
+            f"<span style='width:10px;height:10px;border-radius:2px;"
+            f"background:{color};display:inline-block;'></span>{ttype}</span>"
+        )
+    legend += "</div>"
+    st.markdown("**Legend**")
+    st.markdown(legend, unsafe_allow_html=True)
+
+    # Detail table + type counts side by side
+    if visible:
+        df = pd.DataFrame(visible).rename(columns={"type": "Type", "value": "Value", "position": "Position"})
+        counts = df["Type"].value_counts().reset_index().rename(columns={"index": "Type", "Type": "Count"})
+
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            st.markdown("**All tokens**")
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        with col2:
+            st.markdown("**Type counts**")
+            st.dataframe(counts, use_container_width=True, hide_index=True)
 
 
 def render_error_banner(message: str, suggestion: str = None):

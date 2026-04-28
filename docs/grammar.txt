@@ -1,0 +1,327 @@
+RetailLang Grammar — Plain English Reference
+=============================================
+
+RetailLang is a domain-specific language for retail analytics. You write
+commands in plain English; the system tokenizes them, builds a parse tree, and
+executes the result as Pandas operations, SQL, or Plotly charts.
+
+This file explains every valid statement, what words are accepted, how
+synonyms work, and how to chain multiple statements in a single command.
+
+
+---------------------------------------------------------------------------
+HOW A COMMAND IS PROCESSED
+---------------------------------------------------------------------------
+
+Every command passes through three stages before anything runs:
+
+  1. Lexer   - splits the raw text into tokens (keywords, identifiers,
+               filenames, numbers, comparators, etc.). Articles such as
+               "a", "an", and "the" are silently discarded at this stage.
+
+  2. Parser  - reads the token stream left-to-right and builds an abstract
+               syntax tree (AST). One pass, no backtracking.
+
+  3. Executor - walks the AST and produces a DataFrame, chart, or code.
+
+The token types you will see in the Tokens tab are:
+
+  KEYWORD     - a recognized RetailLang word (load, compute, by, ...)
+  IDENTIFIER  - a column name or user-defined label
+  FILENAME    - a file path ending in .csv / .xlsx / .json / .parquet / .xls
+  STRING      - a quoted or unquoted literal value used as a filter value
+  NUMBER      - an integer or decimal literal
+  COMPARATOR  - =  ==  !=  >  <  >=  <=  (and their English equivalents)
+  PUNCT       - ,  (  )
+  EOF         - marks the end of the token stream
+
+
+---------------------------------------------------------------------------
+COMPOUND COMMANDS
+---------------------------------------------------------------------------
+
+Multiple statements can be joined in a single command using "and", "then",
+"also", or a comma. The parser splits at each junction and produces a
+separate AST node for each statement.
+
+  Load sales.csv and compute total revenue by region and generate a bar chart
+  Load orders.csv, filter by region = West, compute total subtotal by channel
+
+
+---------------------------------------------------------------------------
+STATEMENT 1 — LOAD
+---------------------------------------------------------------------------
+
+Purpose: read a data file into memory.
+
+Syntax:
+  <load-verb> <filename> [ as <alias> ]
+
+Load verbs (any of these work):
+  load  import  read  open
+
+Supported file extensions: .csv  .xlsx  .xls  .json  .parquet
+
+The optional "as <alias>" clause is accepted but currently reserved for
+future multi-dataset support; the executor uses one active dataset at a time.
+
+Examples:
+  Load sales.csv
+  Import orders.csv as orders
+  Read data/products.xlsx
+  Open customers.csv
+
+
+---------------------------------------------------------------------------
+STATEMENT 2 — COMPUTE
+---------------------------------------------------------------------------
+
+Purpose: aggregate a numeric column, optionally broken out by a group.
+
+Syntax:
+  <compute-verb> <aggregation> <column> [ by <group-column> [, <group-column>] ]
+
+Compute verbs:
+  compute  calculate  find  get  show
+
+Aggregation functions:
+  total / sum       → sum
+  average / avg / mean → average
+  count / number    → count
+  max / maximum     → maximum
+  min / minimum     → minimum
+
+Group-by keywords:
+  by  grouped by  per  for each
+
+Examples:
+  Compute total revenue by region
+  Calculate average profit per product
+  Find total units grouped by category
+  Show count of orders by month
+  Get maximum discount by segment
+
+
+---------------------------------------------------------------------------
+STATEMENT 3 — FILTER
+---------------------------------------------------------------------------
+
+Purpose: keep only rows that satisfy one or more conditions.
+
+Syntax:
+  <filter-verb> [by] <column> <comparator> <value>
+                [ and | or <column> <comparator> <value> ... ]
+
+Filter verbs:
+  filter  where  only  select
+
+Comparators and their English aliases:
+  =   ==  is
+  !=  is not  not
+  >   greater than
+  <   less than
+  >=  at least
+  <=  at most
+
+The value after the comparator can be:
+  - a bare word    (region = West)
+  - a number       (profit > 1000)
+  - a quoted string (category = "Home Goods")
+
+Multiple conditions are joined by "and" or "or". The parser stops reading
+conditions as soon as it sees a new statement verb (compute, sort, etc.).
+
+Examples:
+  Filter by region = West
+  Where profit greater than 1000
+  Only region = East and category = Electronics
+  Filter by channel = Online or channel = Mobile
+  Select profit at least 500
+
+
+---------------------------------------------------------------------------
+STATEMENT 4 — CHART
+---------------------------------------------------------------------------
+
+Purpose: produce a Plotly visualization from the current dataset or the
+result of a preceding compute statement.
+
+Syntax:
+  <chart-verb> [a] <chart-type> [chart | graph] [ titled <title> ]
+
+Chart verbs:
+  generate  create  make  plot  draw  build
+
+Chart types:
+  bar         → bar chart
+  line        → line chart
+  pie         → pie chart
+  scatter     → scatter plot
+  histogram   → histogram
+
+Optional title clause:
+  titled "My Title"
+  title "My Title"
+
+When a chart statement immediately follows a compute statement in the same
+command, the x-axis is automatically set to the group-by column and the
+y-axis to the aggregated column. No extra syntax is needed.
+
+Examples:
+  Generate a bar chart
+  Create a line chart titled "Monthly Revenue"
+  Plot a pie chart
+  Make a scatter plot
+  Draw a histogram
+  Compute total revenue by region and generate a bar chart
+
+
+---------------------------------------------------------------------------
+STATEMENT 5 — PIVOT
+---------------------------------------------------------------------------
+
+Purpose: reshape the data into a pivot table.
+
+Two syntax styles are supported:
+
+  Style A — shorthand "by" form:
+    <pivot-verb> pivot table by <dim1> [and <dim2> [and <dim3>]]
+
+    The first dimension becomes the row index, the second the columns,
+    and the third (if given) the values column.
+
+  Style B — explicit role form:
+    <pivot-verb> pivot table with <col> as rows, <col> as columns,
+                                  <col> as values
+
+    Roles: rows / row / index  |  columns / column / cols  |  values / value / vals
+
+Pivot verbs:
+  create  generate  make  build
+
+Examples:
+  Create a pivot table by product and region
+  Build a pivot table by product and region and revenue
+  Generate a pivot table with region as rows, category as columns,
+    revenue as values
+
+
+---------------------------------------------------------------------------
+STATEMENT 6 — SORT
+---------------------------------------------------------------------------
+
+Purpose: reorder the current dataset by a column.
+
+Syntax:
+  <sort-verb> [by] <column> [<direction>]
+
+Sort verbs:
+  sort  order  rank
+
+Direction keywords:
+  ascending / asc / lowest first   → sort A → Z, smallest first
+  descending / desc / highest first → sort Z → A, largest first
+
+Direction defaults to descending when omitted.
+
+Examples:
+  Sort by revenue descending
+  Order by profit ascending
+  Rank by total_units highest first
+  Sort by region asc
+
+
+---------------------------------------------------------------------------
+SYNONYM RESOLUTION
+---------------------------------------------------------------------------
+
+The lexer resolves synonyms before the parser sees any tokens. The table
+below shows every alias that is accepted and what it maps to.
+
+Keyword synonyms
+  load        ← import, read, open
+  compute     ← calculate, find, get
+  filter      ← where, only, select
+  sort        ← order, rank
+  by          ← grouped by, per, for each
+  and         ← then, also
+  table       ← tables
+  chart       ← graph, plot, visualization, viz
+  ascending   ← asc, lowest first
+  descending  ← desc, highest first
+  average     ← avg, mean
+  total       ← sum
+  maximum     ← max
+  minimum     ← min
+
+Column / metric synonyms (resolved by the executor against actual columns)
+  revenue    ← sales, income, turnover, earnings, receipts
+  profit     ← margin, net, gain, earnings
+  units      ← quantity, qty, items, pieces, count
+  cost       ← expense, spend, expenditure, outlay
+  orders     ← transactions, purchases, sales
+  customer   ← client, buyer, shopper
+  product    ← item, good, sku
+  region     ← area, zone, territory, location
+  date       ← day, time, period
+  total      ← sum, grand total, subtotal
+  discount   ← reduction, saving, offer
+  category   ← type, group, class, department
+  segment    ← tier, group, division
+
+
+---------------------------------------------------------------------------
+ERROR RECOVERY
+---------------------------------------------------------------------------
+
+When the lexer encounters an unknown word it computes the Levenshtein edit
+distance between that word and every known keyword. If a match within
+distance 2 is found, the error message includes a "Did you mean: X?"
+suggestion. The same distance-based suggestion runs for column names when
+the executor cannot find a match in the loaded DataFrame.
+
+
+---------------------------------------------------------------------------
+QUICK-REFERENCE CHEAT SHEET
+---------------------------------------------------------------------------
+
+  Load a file          load <file.csv>
+  Load with alias      load <file.csv> as <alias>
+
+  Sum a column         compute total <col>
+  Average a column     compute average <col>
+  Count rows           compute count <col>
+  Group by one col     compute total <col> by <group>
+  Group by two cols    compute total <col> by <g1>, <g2>
+
+  Filter equal         filter by <col> = <val>
+  Filter range         filter by <col> >= <val> and <col> <= <val>
+
+  Bar chart            generate a bar chart
+  With title           generate a bar chart titled "My Title"
+  Chained chart        compute total revenue by region and generate a bar chart
+
+  Pivot shorthand      create a pivot table by <row-col> and <col-col>
+  Pivot explicit       create a pivot table with <c> as rows, <c> as columns,
+                         <c> as values
+
+  Sort descending      sort by <col> descending
+  Sort ascending       sort by <col> ascending
+
+
+---------------------------------------------------------------------------
+FULL EXAMPLE
+---------------------------------------------------------------------------
+
+  Load data/sales.csv,
+  filter by region = West,
+  compute total revenue by product,
+  sort by revenue descending,
+  and generate a bar chart titled "West Region Revenue by Product"
+
+This single command produces five AST nodes executed in order:
+  LoadStatement   → reads sales.csv
+  FilterStatement → keeps only West rows
+  ComputeStatement → sums revenue grouped by product
+  SortStatement   → orders result largest-first
+  ChartStatement  → draws a bar chart with axes inferred from the compute step
